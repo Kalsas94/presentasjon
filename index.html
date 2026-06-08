@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Nordic Rig Tech &amp; West Piping</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #0e1720;
+      --bg2:     #111e2b;
+      --bg3:     #162535;
+      --teal:    #00f5e3;
+      --teal2:   rgba(0,245,227,0.12);
+      --teal3:   rgba(0,245,227,0.30);
+      --gold:    #f5a623;
+      --gold2:   rgba(245,166,35,0.12);
+      --gold3:   rgba(245,166,35,0.30);
+      --white:   #ffffff;
+      --dim:     rgba(255,255,255,0.55);
+      --dim2:    rgba(255,255,255,0.25);
+      --border:  rgba(255,255,255,0.08);
+      --border2: rgba(0,245,227,0.20);
+    }
+
+    html, body {
+      height: 100%; width: 100%;
+      overflow: hidden;
+      background: var(--bg);
+      font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+      color: var(--white);
+    }
+
+    /* ── Background texture ──────────────────────── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0;
+      background-image:
+        radial-gradient(circle at 20% 50%, rgba(0,245,227,.04) 0%, transparent 55%),
+        radial-gradient(circle at 80% 20%, rgba(0,245,227,.03) 0%, transparent 45%);
+      pointer-events: none;
+    }
+
+    /* ── Slide system ────────────────────────────── */
+    #deck { position: relative; width: 100vw; height: 100vh; z-index: 1; }
+
+    .slide {
+      position: absolute; inset: 0;
+      opacity: 0; pointer-events: none;
+      transform: translateX(40px);
+      transition: opacity .35s ease, transform .35s ease;
+      overflow: hidden;
+    }
+    .slide.active   { opacity: 1; pointer-events: auto; transform: none; }
+    .slide.out-left { opacity: 0; transform: translateX(-40px);
+                      transition: opacity .22s ease, transform .22s ease; }
+
+    /* ── Typography ──────────────────────────────── */
+    .eyebrow {
+      font-size: clamp(9px, .9vw, 12px);
+      font-weight: 700;
+      letter-spacing: .22em;
+      text-transform: uppercase;
+      color: var(--teal);
+      margin-bottom: 2vh;
+    }
+    .eyebrow.gold { color: var(--gold); }
+    .eyebrow.dim  { color: var(--dim2); letter-spacing: .18em; }
+
+    h1 {
+      font-size: clamp(44px, 7vw, 96px);
+      font-weight: 900;
+      line-height: 1.0;
+      letter-spacing: -.03em;
+    }
+    h2 {
+      font-size: clamp(28px, 4vw, 56px);
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -.02em;
+    }
+    h3 {
+      font-size: clamp(17px, 2vw, 28px);
+      font-weight: 700;
+      line-height: 1.2;
+      letter-spacing: -.01em;
+    }
+    .lead {
+      font-size: clamp(15px, 1.75vw, 24px);
+      line-height: 1.65;
+      color: var(--dim);
+      font-weight: 400;
+    }
+    small.sub {
+      font-size: clamp(11px, 1.1vw, 14px);
+      color: var(--dim2);
+      font-weight: 500;
+      letter-spacing: .03em;
+    }
+
+    /* ── Layout ──────────────────────────────────── */
+    .full { width: 100%; height: 100%; display: flex; }
+    .pad  { padding: 6vh 7vw; }
+    .col  { display: flex; flex-direction: column; }
+    .row  { display: flex; align-items: stretch; }
+    .g2   { display: grid; grid-template-columns:1fr 1fr; gap:2vh 2.5vw; }
+    .g3   { display: grid; grid-template-columns:1fr 1fr 1fr; gap:2vh 2vw; }
+    .g4   { display: grid; grid-template-columns:1fr 1fr; gap:1.6vh 2vw; }
+    .grow { flex: 1; }
+    .center { display:flex; align-items:center; justify-content:center; }
+
+    /* ── Side panel ──────────────────────────────── */
+    .panel {
+      width: 38%;
+      flex-shrink: 0;
+      position: relative;
+      overflow: hidden;
+      background: var(--bg2);
+    }
+    .panel::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(0,245,227,.06) 0%, transparent 60%);
+    }
+    .panel-inner {
+      position: relative; z-index: 1;
+      height: 100%;
+      padding: 7vh 5vw 7vh 7vw;
+      display: flex; flex-direction: column;
+      justify-content: flex-end;
+      gap: 2vh;
+    }
+    .panel-num {
+      font-size: clamp(60px, 10vw, 140px);
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: -.04em;
+      color: rgba(0,245,227,.12);
+    }
+    .panel-stat-n {
+      font-size: clamp(36px, 4.5vw, 64px);
+      font-weight: 900;
+      color: var(--teal);
+      line-height: 1;
+    }
+    .panel-stat-n.gold { color: var(--gold); }
+    .panel-stat-l {
+      font-size: clamp(10px, 1vw, 13px);
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--dim2);
+      margin-top: .4vh;
+    }
+
+    /* Teal left border on panel */
+    .panel-teal { border-right: 1px solid rgba(0,245,227,.15); }
+    .panel-gold { border-right: 1px solid rgba(245,166,35,.15); background: var(--bg2); }
+    .panel-gold::after {
+      background: linear-gradient(135deg, rgba(245,166,35,.06) 0%, transparent 60%);
+    }
+
+    /* ── Content area ────────────────────────────── */
+    .content {
+      flex: 1;
+      padding: 6vh 6vw 6vh 5vw;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 2.5vh;
+      overflow: hidden;
+    }
+
+    /* ── Teal accent line ────────────────────────── */
+    .tline {
+      width: 44px; height: 3px;
+      background: var(--teal);
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+    .tline.gold { background: var(--gold); }
+
+    /* ── Cards ───────────────────────────────────── */
+    .card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 2.5vh 2vw;
+      display: flex;
+      flex-direction: column;
+      gap: 1vh;
+    }
+    .card.teal { border-top: 2px solid var(--teal); }
+    .card.gold { border-top: 2px solid var(--gold); }
+    .card.left-teal { border-left: 3px solid var(--teal); border-top: none; border-radius: 4px 10px 10px 4px; }
+    .card.left-gold  { border-left: 3px solid var(--gold); border-top: none; border-radius: 4px 10px 10px 4px; }
+
+    /* ── Bullet list ─────────────────────────────── */
+    .bl { list-style: none; display: flex; flex-direction: column; gap: 1vh; }
+    .bl li {
+      display: flex; align-items: flex-start; gap: .8vw;
+      font-size: clamp(13px, 1.55vw, 21px);
+      line-height: 1.45;
+      color: var(--dim);
+    }
+    .bl li::before {
+      content: '—';
+      color: var(--teal);
+      flex-shrink: 0;
+      font-weight: 700;
+      font-size: .9em;
+      margin-top: .1em;
+    }
+    .bl.gold li::before { color: var(--gold); }
+
+    /* ── Badge ───────────────────────────────────── */
+    .badge {
+      display: inline-flex; align-items: center;
+      border-radius: 4px;
+      padding: .3em .9em;
+      font-size: clamp(9px, .9vw, 12px);
+      font-weight: 800;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+    .badge.teal { background: var(--teal2); border: 1px solid var(--teal3); color: var(--teal); }
+    .badge.gold { background: var(--gold2); border: 1px solid var(--gold3); color: var(--gold); }
+
+    /* ── Horizontal divider ──────────────────────── */
+    .hr { width: 100%; height: 1px; background: var(--border); flex-shrink: 0; }
+
+    /* ── Quote ───────────────────────────────────── */
+    blockquote {
+      border-left: 3px solid var(--teal);
+      padding: 2vh 2.5vw;
+      background: rgba(0,245,227,.04);
+      border-radius: 0 8px 8px 0;
+    }
+    blockquote p {
+      font-size: clamp(14px, 1.8vw, 25px);
+      line-height: 1.6;
+      font-style: italic;
+      color: rgba(255,255,255,.82);
+    }
+    blockquote footer {
+      font-size: clamp(11px, 1.1vw, 14px);
+      color: var(--dim2);
+      margin-top: 1.2vh;
+      font-weight: 600;
+      font-style: normal;
+    }
+
+    /* ── Cert row ────────────────────────────────── */
+    .cert {
+      display: flex; align-items: center; gap: 1.5vw;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.6vh 1.8vw;
+    }
+    .cert-icon { font-size: clamp(16px, 1.8vw, 24px); flex-shrink: 0; }
+    .cert-name { font-size: clamp(12px, 1.3vw, 18px); font-weight: 700; color: var(--white); }
+    .cert-desc { font-size: clamp(10px, .95vw, 13px); color: var(--dim2); margin-top: .2vh; }
+
+    /* ── Tag ─────────────────────────────────────── */
+    .tag {
+      display: inline-block;
+      background: rgba(255,255,255,.05);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: .35em .9em;
+      font-size: clamp(11px, 1.2vw, 16px);
+      font-weight: 600;
+      color: rgba(255,255,255,.65);
+      margin: .25vh .2vw;
+    }
+    .tag:hover { border-color: rgba(0,245,227,.3); color: var(--teal); }
+
+    /* ── Full-cover slide ────────────────────────── */
+    .cover-grid {
+      display: grid;
+      grid-template-columns: 1fr 3px 1fr;
+      gap: 0 4vw;
+      align-items: center;
+    }
+    .cover-divider {
+      width: 3px;
+      height: 80px;
+      background: linear-gradient(to bottom, var(--teal), var(--gold));
+      border-radius: 2px;
+      justify-self: center;
+    }
+
+    /* ── Partner pill ────────────────────────────── */
+    .pill {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1.1vh 1.6vw;
+      font-size: clamp(12px, 1.3vw, 17px);
+      font-weight: 600;
+      color: rgba(255,255,255,.55);
+      white-space: nowrap;
+    }
+
+    /* ── Timeline ────────────────────────────────── */
+    .tl-item {
+      display: flex; align-items: flex-start; gap: 1.5vw;
+    }
+    .tl-dot {
+      flex-shrink: 0;
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--teal);
+      margin-top: .5em;
+    }
+    .tl-year {
+      flex-shrink: 0;
+      font-size: clamp(13px, 1.4vw, 19px);
+      font-weight: 800;
+      color: var(--teal);
+      min-width: 4ch;
+    }
+
+    /* ── Controls ────────────────────────────────── */
+    .nav-dots {
+      position: fixed; bottom: 3vh; left: 50%;
+      transform: translateX(-50%);
+      display: flex; gap: 7px; z-index: 500;
+    }
+    .dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: rgba(255,255,255,.18);
+      border: none; cursor: pointer;
+      transition: all .3s;
+    }
+    .dot.on { background: var(--teal); width: 20px; border-radius: 3.5px; }
+
+    .arr {
+      position: fixed; top: 50%; transform: translateY(-50%);
+      width: 46px; height: 46px; border-radius: 50%;
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.10);
+      color: rgba(255,255,255,.4);
+      font-size: 18px; cursor: pointer; z-index: 500;
+      display: flex; align-items: center; justify-content: center;
+      transition: all .2s;
+    }
+    .arr:hover { background: rgba(0,245,227,.08); border-color: rgba(0,245,227,.3); color: var(--teal); }
+    #prev { left: 1.8vw; }
+    #next { right: 1.8vw; }
+
+    .counter {
+      position: fixed; top: 2.5vh; right: 2.5vw;
+      font-size: clamp(10px, .95vw, 13px);
+      color: rgba(255,255,255,.2); z-index: 500;
+      letter-spacing: .08em; font-weight: 500;
+    }
+    .fsbtn {
+      position: fixed; top: 2.2vh; left: 2.2vw;
+      background: transparent;
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 5px;
+      color: rgba(255,255,255,.25);
+      cursor: pointer;
+      font-size: 11px; font-family: inherit;
+      padding: 5px 12px; z-index: 500;
+      letter-spacing: .08em; font-weight: 600;
+      text-transform: uppercase;
+      transition: all .2s;
+    }
+    .fsbtn:hover { border-color: rgba(0,245,227,.3); color: var(--teal); }
+
+    /* ── Slide-specific bg tweaks ────────────────── */
+    .bg-dark  { background: var(--bg); }
+    .bg-dark2 { background: var(--bg2); }
+
+    /* ── Icon circle ─────────────────────────────── */
+    .icon-c {
+      width: clamp(36px,4vw,54px);
+      height: clamp(36px,4vw,54px);
+      border-radius: 50%;
+      background: var(--teal2);
+      border: 1px solid var(--teal3);
+      display: flex; align-items: center; justify-content: center;
+      font-size: clamp(16px,1.8vw,24px);
+      flex-shrink: 0;
+    }
+    .icon-c.gold { background: var(--gold2); border-color: var(--gold3); }
+
+    /* ── Responsive font for big stats ──────────── */
+    .big-num {
+      font-size: clamp(48px,8vw,110px);
+      font-weight: 900;
+      letter-spacing: -.04em;
+      line-height: 1;
+      color: var(--teal);
+    }
+
+    /* Two-company header bar */
+    .co-bar {
+      display: flex; align-items: center; gap: 1.5vw;
+      padding-bottom: 3vh;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 3.5vh;
+    }
+    .co-name-big {
+      font-size: clamp(20px, 2.8vw, 38px);
+      font-weight: 900;
+      letter-spacing: -.02em;
+    }
+  </style>
+</head>
+<body>
+<div id="deck">
+
+<!-- ══════════════════════════════════════════════
+     1. COVER
+═══════════════════════════════════════════════ -->
+<div class="slide bg-dark">
+  <div class="full col" style="justify-content:space-between;padding:6vh 8vw;">
+    <!-- Top bar -->
+    <div style="display:flex;align-items:center;gap:1.5vw;">
+      <div style="width:28px;height:3px;background:var(--teal);border-radius:2px;"></div>
+      <span class="eyebrow" style="margin:0;">Olje- og gassindustrien · Norge &amp; Internasjonalt</span>
+    </div>
+
+    <!-- Main content -->
+    <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:4vh;">
+      <p class="eyebrow dim" style="font-size:clamp(9px,.85vw,11px);margin-bottom:0;">
+        Leveranse av prosjekter og løsninger innen
+      </p>
+      <div class="cover-grid" style="max-width:900px;">
+        <div>
+          <h1 style="color:var(--teal);line-height:.95;">Nordic<br>Rig Tech</h1>
+        </div>
+        <div class="cover-divider"></div>
+        <div>
+          <h1 style="color:var(--gold);line-height:.95;">West<br>Piping</h1>
+        </div>
+      </div>
+      <p class="lead" style="max-width:55ch;margin-top:.5vh;">
+        To spesialiserte selskaper — én komplett leveranse av elektriske, mekaniske og rørtekniske løsninger.
+      </p>
+    </div>
+
+    <!-- Bottom bar -->
+    <div class="hr" style="margin-bottom:2.5vh;"></div>
+    <div style="display:flex;gap:2.5vw;align-items:center;">
+      <span class="badge teal">NordicRigTech.com</span>
+      <span style="color:var(--border);font-size:18px;">|</span>
+      <span class="badge gold">WestPiping.no</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     2. OVERSIKT
+═══════════════════════════════════════════════ -->
+<div class="slide bg-dark">
+  <div class="full">
+    <!-- Left panel -->
+    <div class="panel panel-teal">
+      <div class="panel-inner">
+        <div style="margin-bottom:auto;">
+          <div class="eyebrow" style="margin-bottom:1.5vh;">To selskaper</div>
+          <h2 style="font-size:clamp(22px,2.5vw,34px);line-height:1.2;color:var(--white);">
+            Én komplett<br>leveranse
+          </h2>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:3vh;">
+          <div>
+            <div class="panel-stat-n">90+</div>
+            <div class="panel-stat-l">Fagpersoner totalt</div>
+          </div>
+          <div>
+            <div class="panel-stat-n">35+</div>
+            <div class="panel-stat-l">År kombinert erfaring</div>
+          </div>
+          <div>
+            <div class="panel-stat-n">4+</div>
+            <div class="panel-stat-l">Land</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Right content -->
+    <div class="content" style="gap:2.5vh;">
+      <!-- NRT card -->
+      <div class="card teal grow">
+        <div style="display:flex;align-items:center;gap:1.2vw;margin-bottom:.5vh;">
+          <span class="badge teal">Nordic Rig Tech</span>
+          <small class="sub">Est. 2022 · Bergen</small>
+        </div>
+        <h3 style="color:var(--white);">Elektriske løsninger &amp; Engineering</h3>
+        <p class="lead" style="font-size:clamp(13px,1.45vw,19px);">
+          Spesialisert leverandør av elektriske tjenester, engineering og automatisering for olje- og gassindustrien.
+        </p>
+        <div style="display:flex;gap:2vw;margin-top:.5vh;">
+          <div><div style="font-size:clamp(18px,2.2vw,30px);font-weight:900;color:var(--teal);">50+</div><div class="panel-stat-l">Ansatte</div></div>
+          <div><div style="font-size:clamp(18px,2.2vw,30px);font-weight:900;color:var(--teal);">4+</div><div class="panel-stat-l">Land</div></div>
+          <div><div style="font-size:clamp(18px,2.2vw,30px);font-weight:900;color:var(--teal);">ISO&nbsp;9001/14001</div><div class="panel-stat-l">Sertifisert</div></div>
+        </div>
+      </div>
+      <!-- WP card -->
+      <div class="card gold grow">
+        <div style="display:flex;align-items:center;gap:1.2vw;margin-bottom:.5vh;">
+          <span class="badge gold">West Piping</span>
+          <small class="sub">Est. 1989 · Mongstad</small>
+        </div>
+        <h3 style="color:var(--white);">Sveising, Rør &amp; Mekaniske tjenester</h3>
+        <p class="lead" style="font-size:clamp(13px,1.45vw,19px);">
+          Ledende verksted og serviceleverandør innen sveising, industrirørlegging og mekanisk produksjon for olje- og gassindustrien.
+        </p>
+        <div style="display:flex;gap:2vw;margin-top:.5vh;">
+          <div><div style="font-size:clamp(18px,2.2vw,30px);font-weight:900;color:var(--gold);">40+</div><div class="panel-stat-l">Ansatte</div></div>
+          <div><div style="font-size:clamp(18px,2.2vw,30px);font-weight:900;color:var(--gold);">850m²</div><div class="panel-stat-l">Innendørs</div></div>
+          <div><div style="font-size:clamp(18px,2.2vw,30px);font-weight:900;color:var(--gold);">ISO&nbsp;9001/3834</div><div class="panel-stat-l">Sertifisert</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     3. NORDIC RIG TECH – PROFIL
+═══════════════════════════════════════════════ -->
+<div class="slide bg-dark">
+  <div class="full">
+    <div class="panel panel-teal">
+      <div class="panel-inner">
+        <div style="margin-bottom:auto;padding-top:7vh;">
+          <div class="eyebrow" style="margin-bottom:1vh;">Nordic Rig Tech</div>
+          <div class="tline"></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:3.5vh;">
+          <div>
+            <div class="panel-stat-n">2022</div>
+            <div class="panel-stat-l">Etablert</div>
+          </div>
+          <div>
+            <div class="panel-stat-n">50+</div>
+            <div class="panel-stat-l">Ansatte</div>
+          </div>
+          <div>
+            <div class="panel-stat-n">Bergen</div>
+            <div class="panel-stat-l">Kokstadvegen 41, Kokstad</div>
+          </div>
+          <div>
+            <div class="panel-stat-n" style="font-size:clamp(18px,2.2vw,30px);">NordicRigTech.com</div>
+            <div class="panel-stat-l">Nettside</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+      <div>
+        <h2 style="margin-bottom:2vh;">Elektriske løsninger<br><span style="color:var(--teal);">fra A til Å</span></h2>
+        <p class="lead">
+          Siden oppstarten i 2022 har Nordic Rig Tech vokst til over 50 ansatte og leverer komplette elektriske og tekniske tjenester til olje- og gassindustrien — fra enkeltressurser til komplette prosjektteam.
+        </p>
+      </div>
+      <div class="hr"></div>
+      <div>
+        <div class="eyebrow" style="margin-bottom:1.5vh;">Ledelse</div>
+        <div style="display:flex;flex-direction:column;gap:1.2vh;">
+          <div class="card left-teal" style="padding:1.4vh 1.5vw;background:transparent;">
+            <div style="font-size:clamp(13px,1.4vw,19px);font-weight:700;color:var(--white);">Casper Mælen Hannevig</div>
+            <div class="sub">Daglig leder</div>
+          </div>
+          <div class="card left-teal" style="padding:1.4vh 1.5vw;background:transparent;">
+            <div style="font-size:clamp(13px,1.4vw,19px);font-weight:700;color:var(--white);">Nils Erik Eide</div>
+            <div class="sub">Prosjektleder &amp; Medgründer</div>
+          </div>
+          <div class="card left-teal" style="padding:1.4vh 1.5vw;background:transparent;">
+            <div style="font-size:clamp(13px,1.4vw,19px);font-weight:700;color:var(--white);">Eric Molnes</div>
+            <div class="sub">Prosjektleder &amp; Medgründer</div>
+          </div>
+        </div>
+      </div>
+      <div class="hr"></div>
+      <div>
+        <div class="eyebrow" style="margin-bottom:1.5vh;">Vekst</div>
+        <div style="display:flex;gap:3vw;">
+          <div><span style="font-weight:800;color:var(--teal);font-size:clamp(13px,1.4vw,19px);">2022</span><br><small class="sub">2 ans.</small></div>
+          <div style="color:var(--dim2);display:flex;align-items:center;">→</div>
+          <div><span style="font-weight:800;color:var(--teal);font-size:clamp(13px,1.4vw,19px);">2023</span><br><small class="sub">10 ans.</small></div>
+          <div style="color:var(--dim2);display:flex;align-items:center;">→</div>
+          <div><span style="font-weight:800;color:var(--teal);font-size:clamp(13px,1.4vw,19px);">2024</span><br><small class="sub">25 ans.</small></div>
+          <div style="color:var(--dim2);display:flex;align-items:center;">→</div>
+          <div><span style="font-weight:800;color:var(--teal);font-size:clamp(13px,1.4vw,19px);">2025+</span><br><small class="sub">50+ ans.</small></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     4. WEST PIPING – PROFIL
+═══════════════════════════════════════════════ -->
+<div class="slide bg-dark">
+  <div class="full">
+    <div class="panel panel-gold">
+      <div class="panel-inner">
+        <div style="margin-bottom:auto;padding-top:7vh;">
+          <div class="eyebrow gold" style="margin-bottom:1vh;">West Piping</div>
+          <div class="tline gold"></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:3.5vh;">
+          <div>
+            <div class="panel-stat-n gold">1989</div>
+            <div class="panel-stat-l">Etablert</div>
+          </div>
+          <div>
+            <div class="panel-stat-n gold">40+</div>
+            <div class="panel-stat-l">Ansatte</div>
+          </div>
+          <div>
+            <div class="panel-stat-n gold">Mongstad</div>
+            <div class="panel-stat-l">Litlås 21, 5954 Mongstad</div>
+          </div>
+          <div>
+            <div class="panel-stat-n gold" style="font-size:clamp(18px,2.2vw,30px);">WestPiping.no</div>
+            <div class="panel-stat-l">Nettside</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+      <div>
+        <h2 style="margin-bottom:2vh;">35+ år med<br><span style="color:var(--gold);">industriell ekspertise</span></h2>
+        <p class="lead">
+          Grunnlagt i 1989, er West Piping et av Vestlandets mest erfarne service- og verkstedselskaper. Strategisk plassert ved Equinors raffineri og CCB Mongstad — rett ved der det skjer.
+        </p>
+      </div>
+      <div class="hr"></div>
+      <div>
+        <div class="eyebrow gold" style="margin-bottom:1.5vh;">Ledelse</div>
+        <div style="display:flex;flex-direction:column;gap:1.2vh;">
+          <div class="card left-gold" style="padding:1.4vh 1.5vw;background:transparent;">
+            <div style="font-size:clamp(13px,1.4vw,19px);font-weight:700;color:var(--white);">Heine Haugen</div>
+            <div class="sub">Daglig leder · heine@westpiping.no</div>
+          </div>
+          <div class="card left-gold" style="padding:1.4vh 1.5vw;background:transparent;">
+            <div style="font-size:clamp(13px,1.4vw,19px);font-weight:700;color:var(--white);">Erdin Besir</div>
+            <div class="sub">Drifts- og kvalitetsleder · erdin@westpiping.no</div>
+          </div>
+        </div>
+      </div>
+      <div class="hr"></div>
+      <div>
+        <div class="eyebrow gold" style="margin-bottom:1.5vh;">Fasiliteter</div>
+        <div style="display:flex;gap:3.5vw;">
+          <div><span style="font-weight:900;color:var(--gold);font-size:clamp(16px,1.8vw,26px);">850 m²</span><br><small class="sub">Innendørs verksted</small></div>
+          <div><span style="font-weight:900;color:var(--gold);font-size:clamp(16px,1.8vw,26px);">12 000 m²</span><br><small class="sub">Utendørs areal</small></div>
+          <div><span style="font-weight:900;color:var(--gold);font-size:clamp(16px,1.8vw,26px);">5 T</span><br><small class="sub">Traverskran</small></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     5. NRT – TJENESTER
+═══════════════════════════════════════════════ -->
+<div class="slide bg-dark">
+  <div class="full col pad" style="gap:3vh;justify-content:flex-start;">
+    <div>
+      <div class="eyebrow" style="margin-bottom:.8vh;">Nordic Rig Tech — Tjenester</div>
+      <h2>Hva vi leverer</h2>
+    </div>
+    <div class="g3" style="flex:1;">
+      <div class="card teal">
+        <div style="display:flex;align-items:center;gap:1vw;margin-bottom:.5vh;">
+          <div class="icon-c">⚡</div>
+          <h3 style="color:var(--white);">Engineering</h3>
+        </div>
+        <ul class="bl">
+          <li>Beregninger &amp; prosjektering</li>
+          <li>Teknisk tegning</li>
+          <li>Spesialtilpasninger</li>
+        </ul>
+      </div>
+      <div class="card teal">
+        <div style="display:flex;align-items:center;gap:1vw;margin-bottom:.5vh;">
+          <div class="icon-c">🏭</div>
+          <h3 style="color:var(--white);">Produksjon &amp; Tilpasning</h3>
+        </div>
+        <ul class="bl">
+          <li>Tavlebygging</li>
+          <li>Automasjonsløsninger</li>
+          <li>Levetidsforlengelse</li>
+          <li>Bransjespesifikke løsninger</li>
+        </ul>
+      </div>
+      <div class="card teal">
+        <div style="display:flex;align-items:center;gap:1vw;margin-bottom:.5vh;">
+          <div class="icon-c">🔧</div>
+          <h3 style="color:var(--white);">Installasjon &amp; Ferdigstillelse</h3>
+        </div>
+        <ul class="bl">
+          <li>Komplett installasjon</li>
+          <li>Testing &amp; commissioning</li>
+          <li>Testrapporter</li>
+          <li>Pålitelig drift</li>
+        </ul>
+      </div>
+      <div class="card teal">
+        <div style="display:flex;align-items:center;gap:1vw;margin-bottom:.5vh;">
+          <div class="icon-c">🛠</div>
+          <h3 style="color:var(--white);">Vedlikehold &amp; Modifikasjon</h3>
+        </div>
+        <ul class="bl">
+          <li>Elektro &amp; Automasjon</li>
+          <li>Ekom</li>
+          <li>Inspeksjon</li>
+        </ul>
+      </div>
+      <div class="card teal">
+        <div style="display:flex;align-items:center;gap:1vw;margin-bottom:.5vh;">
+          <div class="icon-c">⚠️</div>
+          <h3 style="color:var(--white);">EX-kompetanse</h3>
+        </div>
+        <ul class="bl">
+          <li>EX-installasjon i farlige soner</li>
+          <li>Inspeksjon &amp; vedlikehold</li>
+          <li>Dokumentasjon</li>
+          <li>6 IEC EX-sertifiserte ingeniører</li>
+        </ul>
+      </div>
+      <div class="card teal">
+        <div style="display:flex;align-items:center;gap:1vw;margin-bottom:.5vh;">
+          <div class="icon-c">👥</div>
+          <h3 style="color:var(--white);">Kvalifisert Personell</h3>
+        </div>
+        <ul class="bl">
+          <li>Sertifiserte elektrikere</li>
+          <li>Feltingeniører &amp; automatikere</li>
+          <li>Telecom EX-inspektører</li>
+          <li>Prosjektledere</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     6. WEST PIPING – TJENESTER
+═══════════════════════════════════════════════ -->
+<div class="slide bg-dark">
+  <div class="full col pad" style="gap:3vh;justify-content:flex-start;">
+    <div>
+      <div class="eyebrow gold" style="margin-bottom:.8vh;">West Piping — Tjenester</div>
+      <h2>Hva vi leverer</h2>
+    </div>
+    <div class="g3" style="flex:1;">
+      <div class="card gold">
+        <div style="display:flex;align-items:center;gap:1vw;margin-bottom:.5vh;">
+          <div class="icon-c gold">🔥</div>
+          <h3 style="color:var(--white);">Sveising</h3>
+        </div>
+        <ul class="bl gold">
+          <li>Karbonstål &amp; rustfritt stål</li>
+          <li>Titan, duplex, superduplex</li>
+          <li>6MO-materialer</li>
+          <li>Sertifiserte sveiseprosedyrer</li>
+        </ul>
+      </div>
+      <div class="card gold">
+        <div style="display:flex;align-items:center;gap:1vw;margin-bottom:.5vh;">
+          <div class="icon-c gold">🔩</div>
+          <h3 style="color:var(--white);">Industrirørlegging</h3>
+        </div>
+        <ul class="bl gold">
+          <li>Prefabrikasjon &amp; montering</li>
+          <li>PED 2014/68/EU-direktiv</li>
+          <li>Trykkprøving</li>
+          <li>Varmbehandling &amp; målinger</li>
+        </ul>
+      </div>
+      <div class="card gold">
+        <div style="display:flex;align-items:center;gap:1vw;margin-bottom:.5vh;">
+          <div class="icon-c gold">🏗</div>
+          <h3 style="color:var(--white);">Stålkonstruksjoner</h3>
+        </div>
+        <ul class="bl gold">
+          <li>Støttestrukturer &amp; rammer</li>
+          <li>2.7.1-containere &amp; tanker</li>
+          <li>Spesialkonstruksjoner</li>
+          <li>Engineering-tjenester</li>
+        </ul>
+      </div>
+      <div class="card gold">
+        <div style="display:flex;align-items:center;gap:1vw;margin-bottom:.5vh;">
+          <div class="icon-c gold">⚙</div>
+          <h3 style="color:var(--white);">Mekanisk Verksted</h3>
+        </div>
+        <ul class="bl gold">
+          <li>850 m² innendørs anlegg</li>
+          <li>12 000 m² utendørs</li>
+          <li>5-tonns traverskran</li>
+          <li>In-house &amp; on-site reparasjoner</li>
+        </ul>
+      </div>
+      <div class="card gold">
+        <div style="display:flex;align-items:center;gap:1vw;margin-bottom:.5vh;">
+          <div class="icon-c gold">🚢</div>
+          <h3 style="color:var(--white);">On/Offshore-arbeid</h3>
+        </div>
+        <ul class="bl gold">
+          <li>Skipskader &amp; reparasjoner</li>
+          <li>Sjøsikring (seafastening)</li>
+          <li>Onshore &amp; offshore leveranser</li>
+        </ul>
+      </div>
+      <div class="card gold">
+        <div style="display:flex;align-items:center;gap:1vw;margin-bottom:.5vh;">
+          <div class="icon-c gold">📍</div>
+          <h3 style="color:var(--white);">Beliggenhet</h3>
+        </div>
+        <p class="lead" style="font-size:clamp(12px,1.3vw,17px);">
+          Plassert ved Equinors raffineri og CCB Mongstad — rask mobilisering, nær kunden.
+        </p>
+        <p class="lead" style="font-size:clamp(11px,1.1vw,15px);color:var(--dim2);margin-top:.5vh;">
+          Dedikert avdeling for rustfritt stål &amp; titan
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     7. KOMBINERT LEVERANSE
+═══════════════════════════════════════════════ -->
+<div class="slide bg-dark">
+  <div class="full col pad" style="justify-content:space-between;">
+    <div>
+      <div class="eyebrow" style="margin-bottom:.8vh;">Felles styrke</div>
+      <h2>Komplett leveranse — fra én gruppe</h2>
+    </div>
+    <div style="flex:1;display:flex;gap:3vw;margin:3vh 0;align-items:stretch;">
+      <!-- NRT -->
+      <div class="card teal grow" style="gap:1.8vh;">
+        <span class="badge teal" style="align-self:flex-start;">Nordic Rig Tech</span>
+        <ul class="bl">
+          <li>Elektro &amp; instrumentering</li>
+          <li>Engineering &amp; prosjektering</li>
+          <li>Automasjon &amp; styresystemer</li>
+          <li>EX-installasjon &amp; inspeksjon</li>
+          <li>Commissioning &amp; testing</li>
+          <li>Vedlikehold &amp; modifikasjon</li>
+        </ul>
+      </div>
+      <!-- Center -->
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.5vh;flex-shrink:0;">
+        <div style="width:2px;flex:1;background:linear-gradient(to bottom,var(--teal),transparent);"></div>
+        <div style="width:40px;height:40px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:var(--dim2);">+</div>
+        <div style="width:2px;flex:1;background:linear-gradient(to bottom,transparent,var(--gold));"></div>
+      </div>
+      <!-- WP -->
+      <div class="card gold grow" style="gap:1.8vh;">
+        <span class="badge gold" style="align-self:flex-start;">West Piping</span>
+        <ul class="bl gold">
+          <li>Sveising &amp; metallarbeider</li>
+          <li>Industrirørlegging &amp; prefabrikasjon</li>
+          <li>Stålkonstruksjoner &amp; strukturer</li>
+          <li>Mekanisk produksjon &amp; verksted</li>
+          <li>On/Offshore reparasjoner</li>
+          <li>Sjøsikring &amp; skipstjenester</li>
+        </ul>
+      </div>
+    </div>
+    <!-- Bottom summary -->
+    <div style="background:rgba(0,245,227,.05);border:1px solid rgba(0,245,227,.15);border-radius:10px;padding:2vh 3vw;text-align:center;">
+      <p style="font-size:clamp(14px,1.6vw,22px);color:rgba(255,255,255,.85);">
+        <strong style="color:var(--teal);">Én kontaktflate</strong> for komplette elektriske, mekaniske og rørtekniske leveranser — fra engineering til ferdigstillelse.
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     8. SERTIFISERINGER
+═══════════════════════════════════════════════ -->
+<div class="slide bg-dark">
+  <div class="full">
+    <div class="panel panel-teal">
+      <div class="panel-inner">
+        <div style="margin-bottom:auto;padding-top:7vh;">
+          <div class="eyebrow" style="margin-bottom:1vh;">Dokumentert kvalitet</div>
+          <h2 style="font-size:clamp(20px,2.2vw,32px);line-height:1.2;">Godkjenninger<br>&amp; sertifiseringer</h2>
+        </div>
+        <p class="lead" style="font-size:clamp(12px,1.3vw,17px);margin-bottom:3vh;">
+          Begge selskaper opererer etter bransjens strengeste krav og er sertifisert av anerkjente norske og internasjonale organer.
+        </p>
+      </div>
+    </div>
+    <div class="content" style="gap:2vh;">
+      <div>
+        <span class="badge teal" style="margin-bottom:1.5vh;display:inline-block;">Nordic Rig Tech</span>
+        <div style="display:flex;flex-direction:column;gap:1vh;">
+          <div class="cert"><div class="cert-icon">🏆</div><div><div class="cert-name">ISO 9001 &amp; ISO 14001</div><div class="cert-desc">Kvalitetsstyring og miljøledelse</div></div></div>
+          <div class="cert"><div class="cert-icon">✅</div><div><div class="cert-name">Godkjent el-virksomhet</div><div class="cert-desc">Norske myndighetskrav</div></div></div>
+          <div class="cert"><div class="cert-icon">📡</div><div><div class="cert-name">Godkjent ekominstallatør</div><div class="cert-desc">Telecom &amp; kommunikasjonsanlegg</div></div></div>
+          <div class="cert"><div class="cert-icon">🤝</div><div><div class="cert-name">Tariffavtale NHO Elektro</div><div class="cert-desc">Kollektiv arbeidsavtale</div></div></div>
+          <div class="cert"><div class="cert-icon">⚠️</div><div><div class="cert-name">IEC EX — 6 sertifiserte ingeniører</div><div class="cert-desc">Over 20 EX-inspektører</div></div></div>
+        </div>
+      </div>
+      <div class="hr"></div>
+      <div>
+        <span class="badge gold" style="margin-bottom:1.5vh;display:inline-block;">West Piping</span>
+        <div style="display:flex;flex-direction:column;gap:1vh;">
+          <div class="cert"><div class="cert-icon">🏆</div><div><div class="cert-name">ISO 9001:2015</div><div class="cert-desc">Sertifisert kvalitetsstyring</div></div></div>
+          <div class="cert"><div class="cert-icon">🔥</div><div><div class="cert-name">ISO 3834-2:2005</div><div class="cert-desc">Sveisestandarder — høyeste nivå</div></div></div>
+          <div class="cert"><div class="cert-icon">🛡</div><div><div class="cert-name">DNV GL</div><div class="cert-desc">Internasjonalt anerkjent klassifisering</div></div></div>
+          <div class="cert"><div class="cert-icon">🔗</div><div><div class="cert-name">Achilles JQS &amp; EPIM JQS</div><div class="cert-desc">Godkjent leverandørdatabase</div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     9. PROSJEKTREFERANSER NRT
+═══════════════════════════════════════════════ -->
+<div class="slide bg-dark">
+  <div class="full col pad" style="gap:2.5vh;justify-content:flex-start;">
+    <div>
+      <div class="eyebrow" style="margin-bottom:.8vh;">Prosjektreferanser — Nordic Rig Tech</div>
+      <h2>Leveranser vi er stolte av</h2>
+    </div>
+    <div class="g3" style="flex:1;">
+      <div class="card teal" style="gap:1.5vh;">
+        <h3 style="color:var(--white);">🛢 Plattformprosjekter</h3>
+        <div style="display:flex;flex-wrap:wrap;">
+          <span class="tag">Åsgard B</span>
+          <span class="tag">Oseberg C</span>
+          <span class="tag">Tyra</span>
+          <span class="tag">Brage</span>
+          <span class="tag">Visund</span>
+          <span class="tag">Njord A</span>
+        </div>
+      </div>
+      <div class="card teal" style="gap:1.5vh;">
+        <h3 style="color:var(--white);">🏗 Nybyggprosjekter</h3>
+        <div style="display:flex;flex-wrap:wrap;">
+          <span class="tag">Jackdaw</span>
+          <span class="tag">Fenris</span>
+          <span class="tag">Hugin</span>
+          <span class="tag">Johan Castberg</span>
+        </div>
+      </div>
+      <div class="card teal" style="gap:1.5vh;">
+        <h3 style="color:var(--white);">🌍 Internasjonalt</h3>
+        <div style="display:flex;flex-wrap:wrap;">
+          <span class="tag">Namibia</span>
+          <span class="tag">Las Palmas</span>
+          <span class="tag">Canada</span>
+          <span class="tag">Danmark</span>
+        </div>
+        <p class="lead" style="font-size:clamp(11px,1.1vw,15px);margin-top:.5vh;">Leveranser på 4+ land siden 2023.</p>
+      </div>
+      <div class="card teal" style="gap:1.5vh;grid-column:1/-1;">
+        <h3 style="color:var(--white);">⚓ Riggprosjekter</h3>
+        <div style="display:flex;flex-wrap:wrap;">
+          <span class="tag">COSL Pioneer</span>
+          <span class="tag">COSL Prospector</span>
+          <span class="tag">Deepsa Stavanger</span>
+          <span class="tag">Mira</span>
+          <span class="tag">Bollsta</span>
+          <span class="tag">Hercules</span>
+          <span class="tag">Yantai</span>
+          <span class="tag">Aberdeen</span>
+          <span class="tag">Transocean Norge</span>
+          <span class="tag">Transocean Barents</span>
+        </div>
+      </div>
+    </div>
+    <div style="padding:1.5vh 2vw;background:rgba(0,245,227,.05);border-radius:8px;border:1px solid rgba(0,245,227,.12);">
+      <p style="font-size:clamp(12px,1.3vw,17px);color:var(--dim);">Leveransene spenner fra enkeltressurser til komplette prosjektteam — gjennomført trygt, strukturert og uten skader.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     10. WEST PIPING – INDUSTRI
+═══════════════════════════════════════════════ -->
+<div class="slide bg-dark">
+  <div class="full">
+    <div class="panel panel-gold">
+      <div class="panel-inner">
+        <div style="margin-bottom:auto;padding-top:7vh;">
+          <div class="eyebrow gold" style="margin-bottom:1vh;">West Piping</div>
+          <div class="tline gold"></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:3vh;">
+          <div><div class="panel-stat-n gold">35+</div><div class="panel-stat-l">År i industrien</div></div>
+          <div><div class="panel-stat-n gold">Mongstad</div><div class="panel-stat-l">Equinor &amp; CCB nabo</div></div>
+          <div><div class="panel-stat-n gold">DNV GL</div><div class="panel-stat-l">Klassifisert</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="content" style="gap:2.5vh;">
+      <div>
+        <div class="eyebrow gold" style="margin-bottom:.8vh;">Leveranser &amp; Industrier</div>
+        <h2>35 år med leveranser<br><span style="color:var(--gold);">på Vestlandet</span></h2>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:1.2vh;">
+        <div class="card left-gold" style="padding:1.8vh 1.8vw;">
+          <h3 style="color:var(--white);margin-bottom:.8vh;">Industrier vi betjener</h3>
+          <ul class="bl gold">
+            <li>Olje- &amp; gassplattformer (topside)</li>
+            <li>Skipsbygning &amp; offshorefartøy</li>
+            <li>Onshore prosessanlegg &amp; raffineri</li>
+            <li>Marine strukturer &amp; sjøsikring</li>
+          </ul>
+        </div>
+        <div class="card left-gold" style="padding:1.8vh 1.8vw;">
+          <h3 style="color:var(--white);margin-bottom:.8vh;">Kapasitet &amp; fleksibilitet</h3>
+          <ul class="bl gold">
+            <li>Stor verkstedkapasitet med 5T kran</li>
+            <li>Dedikert avdeling for rustfritt &amp; titan</li>
+            <li>Mobilisering on-site ved behov</li>
+            <li>Fullt dokumentert sveisekvalitet</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     11. KUNDEREFERANSER
+═══════════════════════════════════════════════ -->
+<div class="slide bg-dark">
+  <div class="full col pad" style="justify-content:space-between;gap:3vh;">
+    <div>
+      <div class="eyebrow" style="margin-bottom:.8vh;">Kunder om oss</div>
+      <h2>Hva kundene sier</h2>
+    </div>
+    <div style="flex:1;display:flex;flex-direction:column;gap:2.5vh;justify-content:center;">
+      <blockquote>
+        <p>«Nordic Rig Tech leverte et konkurransedyktig tilbud og har gjennomført arbeidet på en svært tilfredsstillende måte. Det har hele veien vært en åpen og god dialog om utførelsen og forventet resultat. Dokumentasjon ble levert som avtalt. Med bakgrunn i denne erfaringen kan jeg trygt anbefale Nordic Rig Tech til andre.»</p>
+        <footer>— Referansekunde</footer>
+      </blockquote>
+      <blockquote>
+        <p>«Leirvik AS har hatt gleden av å jobbe med Nordic Rig Tech på våre prosjekter siden 2023. Vi opplever Nordic Rig Tech som ryddig, fleksibel og enkel å samarbeide med på alle nivå. De strekker seg langt for å finne gode løsninger som gir merverdi for begge parter. Selskapet leverer kvalifisert personell som er viktig i offshorerelatert industri.»</p>
+        <footer>— Tor Erik, Leirvik AS</footer>
+      </blockquote>
+      <blockquote style="border-left-color:var(--teal);background:rgba(0,245,227,.04);">
+        <p>«Vår kompromissløse tilnærming til kvalitet har vært nøkkelen til vår suksess. Vi leverer ikke bare tjenester — vi skaper langsiktige partnerskap basert på tillit og ekspertise.»</p>
+        <footer>— Casper Mælen Hannevig, Daglig leder — Nordic Rig Tech</footer>
+      </blockquote>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     12. PARTNERE
+═══════════════════════════════════════════════ -->
+<div class="slide bg-dark">
+  <div class="full col pad" style="justify-content:space-between;">
+    <div>
+      <div class="eyebrow" style="margin-bottom:.8vh;">Nøkkelpartnere</div>
+      <h2>Hvem vi jobber med</h2>
+    </div>
+    <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:3vh;">
+      <p class="lead" style="max-width:55ch;">Vi leverer tjenester til og samarbeider tett med ledende aktører i olje- og gassindustrien på norsk sokkel og internasjonalt.</p>
+      <div style="display:flex;flex-wrap:wrap;gap:1.2vh 1vw;">
+        <div class="pill">Odfjell Drilling</div>
+        <div class="pill">Odfjell Technology</div>
+        <div class="pill">Aker Solutions</div>
+        <div class="pill">Semco Maritime</div>
+        <div class="pill">Leirvik AS</div>
+        <div class="pill">Westcon</div>
+        <div class="pill">Wood</div>
+        <div class="pill">CCB</div>
+        <div class="pill">Equinor</div>
+        <div class="pill">Transocean</div>
+        <div class="pill">COSL</div>
+      </div>
+    </div>
+    <div class="hr"></div>
+    <p class="lead" style="font-size:clamp(12px,1.3vw,17px);">
+      Langsiktige relasjoner bygget på tillit, kompetanse og pålitelig leveranse.
+    </p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     13. KONTAKT
+═══════════════════════════════════════════════ -->
+<div class="slide bg-dark">
+  <div class="full">
+    <div class="panel panel-teal">
+      <div class="panel-inner">
+        <div style="margin-bottom:auto;padding-top:7vh;">
+          <div class="eyebrow" style="margin-bottom:1vh;">Ta kontakt</div>
+          <h2 style="font-size:clamp(24px,2.8vw,40px);line-height:1.15;">
+            Vi er klare<br>når du er det
+          </h2>
+        </div>
+        <p class="lead" style="font-size:clamp(12px,1.3vw,17px);">
+          Lyst til å ta en prat om hva vi kan levere for deg?
+        </p>
+      </div>
+    </div>
+    <div class="content" style="gap:3vh;">
+      <!-- NRT -->
+      <div class="card teal grow" style="gap:2vh;justify-content:center;">
+        <h2 style="color:var(--teal);letter-spacing:-.02em;">Nordic Rig Tech</h2>
+        <div class="hr"></div>
+        <ul class="bl" style="gap:1.2vh;">
+          <li style="color:var(--white);">📞&nbsp; +47 932 50 724</li>
+          <li style="color:var(--white);">✉️&nbsp; kontakt@nordicrigtech.com</li>
+          <li style="color:var(--white);">📍&nbsp; Kokstadvegen 41, 5257 Kokstad</li>
+          <li style="color:var(--teal);font-weight:700;">🌐&nbsp; NordicRigTech.com</li>
+        </ul>
+      </div>
+      <!-- WP -->
+      <div class="card gold grow" style="gap:2vh;justify-content:center;">
+        <h2 style="color:var(--gold);letter-spacing:-.02em;">West Piping</h2>
+        <div class="hr"></div>
+        <ul class="bl gold" style="gap:1.2vh;">
+          <li style="color:var(--white);">📞&nbsp; 56 16 72 20</li>
+          <li style="color:var(--white);">✉️&nbsp; firmapost@westpiping.no</li>
+          <li style="color:var(--white);">📍&nbsp; Litlås 21, 5954 Mongstad</li>
+          <li style="color:var(--gold);font-weight:700;">🌐&nbsp; WestPiping.no</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- #deck -->
+
+<!-- Controls -->
+<div class="nav-dots" id="navDots"></div>
+<button class="arr" id="prev" onclick="go(-1)">&#8592;</button>
+<button class="arr" id="next" onclick="go(+1)">&#8594;</button>
+<div class="counter" id="counter"></div>
+<button class="fsbtn" onclick="fs()">&#9974; Fullskjerm</button>
+<a href="/last-ned" style="position:fixed;top:2.2vh;left:calc(2.2vw + 130px);background:transparent;border:1px solid rgba(0,245,227,.25);border-radius:5px;color:rgba(0,245,227,.5);font-size:11px;font-family:inherit;padding:5px 13px;z-index:500;letter-spacing:.08em;font-weight:600;text-transform:uppercase;text-decoration:none;transition:all .2s;" onmouseover="this.style.color='#00f5e3';this.style.borderColor='rgba(0,245,227,.6)'" onmouseout="this.style.color='rgba(0,245,227,.5)';this.style.borderColor='rgba(0,245,227,.25)'">⬇ Last ned</a>
+
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  let cur = 0;
+
+  function go(dir) {
+    const p = cur;
+    cur = (cur + dir + slides.length) % slides.length;
+    slides[p].classList.remove('active');
+    slides[p].classList.add('out-left');
+    setTimeout(() => slides[p].classList.remove('out-left'), 250);
+    slides[cur].classList.add('active');
+    upd();
+  }
+
+  function goTo(n) {
+    if (n === cur) return;
+    const p = cur; cur = n;
+    slides[p].classList.remove('active');
+    slides[p].classList.add('out-left');
+    setTimeout(() => slides[p].classList.remove('out-left'), 250);
+    slides[cur].classList.add('active');
+    upd();
+  }
+
+  function upd() {
+    document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('on', i === cur));
+    document.getElementById('counter').textContent = (cur + 1) + ' / ' + slides.length;
+  }
+
+  const nav = document.getElementById('navDots');
+  slides.forEach((_, i) => {
+    const d = document.createElement('button');
+    d.className = 'dot'; d.onclick = () => goTo(i);
+    nav.appendChild(d);
+  });
+
+  slides[0].classList.add('active');
+  upd();
+
+  document.addEventListener('keydown', e => {
+    if (e.key==='ArrowRight'||e.key==='ArrowDown'||e.key===' '){e.preventDefault();go(1);}
+    if (e.key==='ArrowLeft' ||e.key==='ArrowUp')              {e.preventDefault();go(-1);}
+  });
+
+  let tx = null;
+  document.addEventListener('touchstart', e => tx = e.touches[0].clientX, {passive:true});
+  document.addEventListener('touchend', e => {
+    if (tx===null) return;
+    const d = tx - e.changedTouches[0].clientX;
+    if (Math.abs(d) > 45) go(d > 0 ? 1 : -1);
+    tx = null;
+  }, {passive:true});
+
+  function fs() {
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+    else document.exitFullscreen();
+  }
+</script>
+</body>
+</html>
